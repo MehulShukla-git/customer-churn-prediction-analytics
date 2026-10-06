@@ -36,3 +36,12 @@ Thumbs.db
 *.log
 *.tmp
 scratch/
+
+venv/
+.venv/
+__pycache__/
+*.pyc
+.env
+.vscode/
+.DS_Store
+*.log
