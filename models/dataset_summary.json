@@ -1,0 +1,7 @@
+{
+  "total_customers": 6492,
+  "churned_customers": 1951,
+  "active_customers": 4541,
+  "churn_rate": 30.05,
+  "avg_monthly_spend": 2569.57
+}

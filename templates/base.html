@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Customer Churn Analytics{% endblock %}</title>
+  <meta name="description" content="Customer Churn Prediction & Analytics Dashboard — ML-powered churn intelligence." />
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+
+<!-- ── Sidebar Navigation ─────────────────────────────────────── -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <i class="bi bi-graph-up-arrow"></i>
+    </div>
+    <div class="brand-text">
+      <span class="brand-title">ChurnIQ</span>
+      <span class="brand-subtitle">Analytics Platform</span>
+    </div>
+  </div>
+
+  <ul class="sidebar-nav">
+    <li class="nav-item">
+      <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
+        <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="{{ url_for('prediction_page') }}" class="nav-link {% if request.endpoint == 'prediction_page' %}active{% endif %}">
+        <i class="bi bi-person-check"></i> <span>Predict Churn</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="{{ url_for('history_page') }}" class="nav-link {% if request.endpoint == 'history_page' %}active{% endif %}">
+        <i class="bi bi-clock-history"></i> <span>Prediction History</span>
+      </a>
+    </li>
+    <li class="nav-item mt-3 mb-1 px-3 text-uppercase" style="font-size: 10px; font-weight: 700; color: #475569; letter-spacing: 0.5px;">Analytics & Models</li>
+    <li class="nav-item">
+      <a href="{{ url_for('eda_page') }}" class="nav-link {% if request.endpoint == 'eda_page' %}active{% endif %}">
+        <i class="bi bi-graph-up"></i> <span>Exploratory Analysis</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="{{ url_for('data_quality_page') }}" class="nav-link {% if request.endpoint == 'data_quality_page' %}active{% endif %}">
+        <i class="bi bi-shield-check"></i> <span>Data Quality</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="{{ url_for('analytics_page') }}" class="nav-link {% if request.endpoint == 'analytics_page' %}active{% endif %}">
+        <i class="bi bi-cpu"></i> <span>Model Performance</span>
+      </a>
+    </li>
+  </ul>
+
+  <div class="sidebar-footer">
+    <div class="model-status" id="modelStatus">
+      <i class="bi bi-circle-fill text-success"></i>
+      <span>Model Active</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Mobile Topbar ─────────────────────────────────────────── -->
+<header class="topbar d-lg-none">
+  <button class="btn btn-sm btn-light" id="sidebarToggle">
+    <i class="bi bi-list fs-5"></i>
+  </button>
+  <span class="topbar-title">ChurnIQ</span>
+</header>
+
+<!-- ── Main Content ─────────────────────────────────────────── -->
+<main class="main-content">
+  <div class="content-wrapper">
+    {% block content %}{% endblock %}
+  </div>
+</main>
+
+<!-- Overlay for mobile sidebar -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<!-- Custom JS -->
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

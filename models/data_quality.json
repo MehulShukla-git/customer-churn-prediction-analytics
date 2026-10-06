@@ -1,0 +1,145 @@
+{
+  "shape": [
+    6625,
+    18
+  ],
+  "missing_values": {
+    "customer_id": 0,
+    "Age": 19,
+    "Tenure_Months": 0,
+    "Plan": 405,
+    "MonthlySpend": 7,
+    "SupportTickets_90D": 0,
+    "MonthlyUsage_Hours": 35,
+    "PaymentHistory_Score": 35,
+    "LoginFrequency_30D": 20,
+    "FailedPayments_90D": 0,
+    "ContractType": 393,
+    "AutoRenew": 833,
+    "DiscountPercent": 0,
+    "DaysSinceLastContact": 36,
+    "Complaints_90D": 0,
+    "Region": 846,
+    "SignupDate": 6,
+    "Churn": 3
+  },
+  "missing_pct": {
+    "customer_id": 0.0,
+    "Age": 0.29,
+    "Tenure_Months": 0.0,
+    "Plan": 6.11,
+    "MonthlySpend": 0.11,
+    "SupportTickets_90D": 0.0,
+    "MonthlyUsage_Hours": 0.53,
+    "PaymentHistory_Score": 0.53,
+    "LoginFrequency_30D": 0.3,
+    "FailedPayments_90D": 0.0,
+    "ContractType": 5.93,
+    "AutoRenew": 12.57,
+    "DiscountPercent": 0.0,
+    "DaysSinceLastContact": 0.54,
+    "Complaints_90D": 0.0,
+    "Region": 12.77,
+    "SignupDate": 0.09,
+    "Churn": 0.05
+  },
+  "duplicate_rows": 66,
+  "duplicate_customer_ids": 125,
+  "dtypes": {
+    "customer_id": "int64",
+    "Age": "str",
+    "Tenure_Months": "float64",
+    "Plan": "str",
+    "MonthlySpend": "str",
+    "SupportTickets_90D": "float64",
+    "MonthlyUsage_Hours": "float64",
+    "PaymentHistory_Score": "float64",
+    "LoginFrequency_30D": "float64",
+    "FailedPayments_90D": "float64",
+    "ContractType": "str",
+    "AutoRenew": "str",
+    "DiscountPercent": "float64",
+    "DaysSinceLastContact": "float64",
+    "Complaints_90D": "float64",
+    "Region": "str",
+    "SignupDate": "str",
+    "Churn": "str"
+  },
+  "plan_values": {
+    "Basic": 1566,
+    "Standard": 1473,
+    "Premium": 1153,
+    "Unknown": 504,
+    "Enterprise": 504,
+    "NaN": 405,
+    "basic": 391,
+    "Std": 340,
+    "PREMIUM": 289
+  },
+  "contract_values": {
+    "Monthly": 2400,
+    "Annual": 1674,
+    "Quarterly": 865,
+    "Yearly": 538,
+    "M": 404,
+    "NaN": 393,
+    "monthly": 351
+  },
+  "autorenew_values": {
+    "Yes": 3042,
+    "No": 1817,
+    "NaN": 833,
+    "no": 544,
+    "yes": 389
+  },
+  "region_values": {
+    "NORTH": 874,
+    "NaN": 846,
+    "North": 833,
+    "East": 833,
+    "Unknown": 832,
+    "South": 803,
+    "West": 802,
+    "south": 802
+  },
+  "churn_values": {
+    "No": 4603,
+    "Yes": 1967,
+    "Churned": 11,
+    "YES": 8,
+    "Y": 6,
+    "NO": 5,
+    "Unknown": 5,
+    "Active": 4,
+    "N": 4,
+    "0": 4,
+    "NaN": 3,
+    "no": 3,
+    "yes": 1,
+    "1": 1
+  },
+  "age_range": {
+    "min": -4.0,
+    "max": 120.0,
+    "negatives": 10,
+    "over_100": 6
+  },
+  "spend_range": {
+    "min": -100.0,
+    "max": 999999.0,
+    "negatives": 12
+  },
+  "tenure_range": {
+    "min": -1.0,
+    "max": 999.0,
+    "negatives": 8
+  },
+  "discount_range": {
+    "min": -5.0,
+    "max": 150.0
+  },
+  "payment_score_range": {
+    "min": -20.0,
+    "max": 999.0
+  }
+}

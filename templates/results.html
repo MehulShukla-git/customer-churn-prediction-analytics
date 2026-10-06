@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Results — Customer Churn Analytics{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Prediction Result</h1>
+  <p class="page-subtitle">Review your customer's churn risk assessment below.</p>
+</div>
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="results-card" id="resultsCard">
+      <div class="results-placeholder text-center text-muted py-5">
+        <i class="bi bi-person-check fs-1 d-block mb-3"></i>
+        <p>Submit a prediction from the <a href="{{ url_for('prediction_page') }}">Predict page</a> to see results here.</p>
+      </div>
+    </div>
+    <div class="text-center mt-3">
+      <a href="{{ url_for('prediction_page') }}" class="btn btn-primary">
+        <i class="bi bi-arrow-left me-2"></i>Run Another Prediction
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

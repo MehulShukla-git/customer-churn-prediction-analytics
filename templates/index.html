@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — Customer Churn Analytics{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Customer Churn Dashboard</h1>
+    <p class="page-subtitle">Real-time analytics and churn intelligence for your customer base.</p>
+  </div>
+  <div class="header-actions">
+    <a href="{{ url_for('prediction_page') }}" class="btn btn-primary">
+      <i class="bi bi-person-check me-2"></i>Predict Churn Risk
+    </a>
+  </div>
+</div>
+
+{% if not model_ready %}
+<div class="alert alert-warning d-flex align-items-center gap-2 mb-4">
+  <i class="bi bi-exclamation-triangle-fill"></i>
+  <div>
+    <strong>Model not trained yet.</strong>
+    Run <code>python run_training.py</code> to train the model before using the dashboard.
+  </div>
+</div>
+{% endif %}
+
+<!-- ── KPI Summary Cards ──────────────────────────────────────── -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-icon-blue">
+        <i class="bi bi-people-fill"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-label">Total Customers</div>
+        <div class="kpi-value">{{ stats.get('total_customers', '—') | int | format_number }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-icon-red">
+        <i class="bi bi-person-x-fill"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-label">Churned</div>
+        <div class="kpi-value">{{ stats.get('churned_customers', '—') | int | format_number }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-icon-amber">
+        <i class="bi bi-activity"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-label">Churn Rate</div>
+        <div class="kpi-value">{{ stats.get('churn_rate', '—') }}%</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-icon-green">
+        <i class="bi bi-currency-rupee"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-label">Avg Spend</div>
+        <div class="kpi-value">₹{{ stats.get('avg_monthly_spend', 0) | round(0) | int | format_number }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-icon-blue">
+        <i class="bi bi-calendar-range"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-label">Avg Tenure</div>
+        <div class="kpi-value">{{ stats.get('avg_tenure', '—') }} mo</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-icon-amber">
+        <i class="bi bi-exclamation-triangle"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-label">High-Risk (Model)</div>
+        <div class="kpi-value" id="highRiskValue">Loading...</div>
+      </div>
+    </div>
+  </div>
+
+<!-- ── Key Business Insights ───────────────────────────────────── -->
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="chart-card border-0 shadow-sm" style="background: linear-gradient(to right, #f8fafc, #ffffff); border-left: 4px solid var(--accent) !important;">
+      <div class="chart-card-header">
+        <h2 class="chart-title"><i class="bi bi-lightbulb-fill text-warning me-2"></i>Key Business Insights</h2>
+        <p class="chart-subtitle">Data-driven observations from the historical dataset</p>
+      </div>
+      <div class="chart-body" id="businessInsightsContainer">
+        <!-- Injected via JavaScript -->
+        <p class="text-muted"><i class="spinner-border spinner-border-sm me-2"></i>Analyzing dataset trends...</p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── Charts Row 1 ──────────────────────────────────────────── -->
+<div class="row g-3 mb-3">
+
+  <!-- Churn Distribution Donut -->
+  <div class="col-md-5">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h2 class="chart-title">Churn Distribution</h2>
+        <p class="chart-subtitle">Active vs churned customers</p>
+      </div>
+      <div class="chart-body">
+        <canvas id="churnDonutChart" height="260"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Churn by Contract Type -->
+  <div class="col-md-7">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h2 class="chart-title">Churn Rate by Contract Type</h2>
+        <p class="chart-subtitle">Are month-to-month customers churning more?</p>
+      </div>
+      <div class="chart-body">
+        <canvas id="contractChurnChart" height="260"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Charts Row 2 ──────────────────────────────────────────── -->
+<div class="row g-3 mb-3">
+
+  <!-- Churn by Plan -->
+  <div class="col-md-6">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h2 class="chart-title">Churn Rate by Plan</h2>
+        <p class="chart-subtitle">Which subscription plan retains better?</p>
+      </div>
+      <div class="chart-body">
+        <canvas id="planChurnChart" height="240"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Churn by Auto-Renewal -->
+  <div class="col-md-6">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h2 class="chart-title">Churn by Auto-Renewal</h2>
+        <p class="chart-subtitle">Does auto-renewal status predict churn?</p>
+      </div>
+      <div class="chart-body">
+        <canvas id="autoRenewChart" height="240"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Model Performance Card ──────────────────────────────────── -->
+{% if model_info %}
+<div class="row g-3">
+  <div class="col-12">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h2 class="chart-title">
+          <i class="bi bi-cpu me-2 text-primary"></i>Model Performance
+        </h2>
+        <p class="chart-subtitle">Selected: <strong>{{ model_info.get('model_name', 'N/A') }}</strong></p>
+      </div>
+      <div class="chart-body">
+        <div class="row g-3">
+          {% set metrics = [
+            ('Accuracy', model_info.get('accuracy', 0), 'bi-bullseye'),
+            ('Precision', model_info.get('precision', 0), 'bi-check-circle'),
+            ('Recall', model_info.get('recall', 0), 'bi-search'),
+            ('F1-Score', model_info.get('f1', 0), 'bi-star'),
+            ('ROC-AUC', model_info.get('roc_auc', 0), 'bi-graph-up'),
+          ] %}
+          {% for label, value, icon in metrics %}
+          <div class="col-6 col-md-4 col-lg-2-4">
+            <div class="metric-pill">
+              <i class="bi {{ icon }} metric-pill-icon"></i>
+              <div class="metric-pill-value">{{ "%.1f" | format(value * 100) }}%</div>
+              <div class="metric-pill-label">{{ label }}</div>
+              <div class="metric-bar">
+                <div class="metric-bar-fill" style="width: {{ (value * 100) | round(1) }}%"></div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Pass server-side stats to JavaScript
+const STATS = {{ stats | tojson }};
+renderDashboardCharts(STATS);
+</script>
+{% endblock %}

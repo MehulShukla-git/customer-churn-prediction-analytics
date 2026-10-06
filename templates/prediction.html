@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+
+{% block title %}Predict Churn — Customer Churn Analytics{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Customer Churn Prediction</h1>
+    <p class="page-subtitle">Enter customer details to predict their churn probability.</p>
+  </div>
+</div>
+
+{% if not model_ready %}
+<div class="alert alert-warning d-flex align-items-center gap-2">
+  <i class="bi bi-exclamation-triangle-fill"></i>
+  <div>
+    <strong>Model not ready.</strong> Run <code>python run_training.py</code> first.
+  </div>
+</div>
+{% else %}
+
+<!-- Result Banner (shown after prediction) -->
+<div id="predictionResult" class="prediction-result-banner d-none mb-4">
+  <div class="result-inner">
+    <div class="result-badge" id="resultBadge">
+      <i class="bi bi-person-x-fill" id="resultIcon"></i>
+    </div>
+    <div class="result-details">
+      <div class="result-prediction" id="resultPrediction">—</div>
+      <div class="result-meta">
+        <span>Probability: <strong id="resultProb">—</strong></span>
+        <span class="mx-2">|</span>
+        <span>Risk Level: <strong id="resultRisk">—</strong></span>
+      </div>
+      <div class="result-explanation" id="resultExplanation"></div>
+    </div>
+    <button class="btn btn-outline-secondary btn-sm" onclick="resetForm()">
+      <i class="bi bi-arrow-counterclockwise me-1"></i>Run Another
+    </button>
+  </div>
+</div>
+
+<!-- Prediction Form -->
+<form id="predictionForm" novalidate>
+  <div class="row g-3">
+
+    <!-- ── Section 1: Customer Information ──────────────── -->
+    <div class="col-12">
+      <div class="form-section">
+        <div class="form-section-header">
+          <i class="bi bi-person-fill text-primary"></i>
+          <h2 class="form-section-title">Customer Information</h2>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label for="Age" class="form-label">Age <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" id="Age" name="Age"
+                   min="18" max="100" placeholder="e.g., 35" required />
+            <div class="invalid-feedback">Age must be between 18 and 100.</div>
+          </div>
+          <div class="col-md-4">
+            <label for="Region" class="form-label">Region <span class="text-danger">*</span></label>
+            <select class="form-select" id="Region" name="Region" required>
+              <option value="">Select region…</option>
+              <option>North</option>
+              <option>South</option>
+              <option>East</option>
+              <option>West</option>
+              <option>Unknown</option>
+            </select>
+            <div class="invalid-feedback">Please select a region.</div>
+          </div>
+          <div class="col-md-4">
+            <label for="SignupDate" class="form-label">Signup Date</label>
+            <input type="date" class="form-control" id="SignupDate" name="SignupDate"
+                   value="2022-01-01" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Section 2: Subscription Information ─────────── -->
+    <div class="col-12">
+      <div class="form-section">
+        <div class="form-section-header">
+          <i class="bi bi-credit-card-fill text-primary"></i>
+          <h2 class="form-section-title">Subscription Information</h2>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label for="Plan" class="form-label">Plan <span class="text-danger">*</span></label>
+            <select class="form-select" id="Plan" name="Plan" required>
+              <option value="">Select plan…</option>
+              <option>Basic</option>
+              <option>Standard</option>
+              <option>Premium</option>
+              <option>Enterprise</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label for="ContractType" class="form-label">Contract Type <span class="text-danger">*</span></label>
+            <select class="form-select" id="ContractType" name="ContractType" required>
+              <option value="">Select type…</option>
+              <option>Monthly</option>
+              <option>Quarterly</option>
+              <option>Annual</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label for="Tenure_Months" class="form-label">Tenure (Months) <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" id="Tenure_Months" name="Tenure_Months"
+                   min="0" max="600" placeholder="e.g., 18" required />
+          </div>
+          <div class="col-md-3">
+            <label for="AutoRenew" class="form-label">Auto-Renewal <span class="text-danger">*</span></label>
+            <select class="form-select" id="AutoRenew" name="AutoRenew" required>
+              <option value="">Select…</option>
+              <option>Yes</option>
+              <option>No</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label for="MonthlySpend" class="form-label">Monthly Spend (₹) <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" id="MonthlySpend" name="MonthlySpend"
+                   min="0" step="0.01" placeholder="e.g., 2500" required />
+          </div>
+          <div class="col-md-4">
+            <label for="DiscountPercent" class="form-label">Discount % <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" id="DiscountPercent" name="DiscountPercent"
+                   min="0" max="100" step="0.1" placeholder="e.g., 10" required />
+          </div>
+          <div class="col-md-4">
+            <label for="DaysSinceLastContact" class="form-label">Days Since Last Contact <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" id="DaysSinceLastContact" name="DaysSinceLastContact"
+                   min="0" placeholder="e.g., 60" required />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Section 3: Engagement Information ──────────── -->
+    <div class="col-12">
+      <div class="form-section">
+        <div class="form-section-header">
+          <i class="bi bi-activity text-primary"></i>
+          <h2 class="form-section-title">Engagement Information</h2>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label for="MonthlyUsage_Hours" class="form-label">Monthly Usage (Hours) <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" id="MonthlyUsage_Hours" name="MonthlyUsage_Hours"
+                   min="0" step="0.1" placeholder="e.g., 50" required />
+          </div>
+          <div class="col-md-4">
+            <label for="LoginFrequency_30D" class="form-label">Login Frequency (30 Days) <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" id="LoginFrequency_30D" name="LoginFrequency_30D"
+                   min="0" placeholder="e.g., 12" required />
+          </div>
+          <div class="col-md-4">
+            <label for="SupportTickets_90D" class="form-label">Support Tickets (90 Days) <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" id="SupportTickets_90D" name="SupportTickets_90D"
+                   min="0" placeholder="e.g., 2" required />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Section 4: Payment Information ─────────────── -->
+    <div class="col-12">
+      <div class="form-section">
+        <div class="form-section-header">
+          <i class="bi bi-wallet2 text-primary"></i>
+          <h2 class="form-section-title">Payment Information</h2>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label for="PaymentHistory_Score" class="form-label">Payment History Score (0–100) <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" id="PaymentHistory_Score" name="PaymentHistory_Score"
+                   min="0" max="100" placeholder="e.g., 85" required />
+          </div>
+          <div class="col-md-4">
+            <label for="FailedPayments_90D" class="form-label">Failed Payments (90 Days) <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" id="FailedPayments_90D" name="FailedPayments_90D"
+                   min="0" placeholder="e.g., 1" required />
+          </div>
+          <div class="col-md-4">
+            <label for="Complaints_90D" class="form-label">Complaints (90 Days) <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" id="Complaints_90D" name="Complaints_90D"
+                   min="0" placeholder="e.g., 1" required />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Submit Button ───────────────────────────────── -->
+    <div class="col-12 d-flex gap-2 justify-content-end">
+      <button type="button" class="btn btn-outline-secondary" onclick="fillSample()">
+        <i class="bi bi-magic me-1"></i>Fill Sample
+      </button>
+      <button type="submit" class="btn btn-primary btn-predict" id="submitBtn">
+        <span class="btn-text">
+          <i class="bi bi-lightning-charge-fill me-2"></i>Predict Churn Risk
+        </span>
+        <span class="btn-spinner d-none">
+          <span class="spinner-border spinner-border-sm me-2"></span>Analyzing…
+        </span>
+      </button>
+    </div>
+
+  </div><!-- /row -->
+</form>
+
+<!-- ── API Reference ────────────────────────────────────────── -->
+<div class="row g-3 mt-4">
+  <div class="col-12">
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="bi bi-code-slash text-primary"></i>
+        <h2 class="form-section-title">API Reference</h2>
+      </div>
+      <p class="text-muted mb-3">
+        You can call the prediction endpoint directly from any HTTP client.
+      </p>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="code-block-label">POST /api/predict — Request</div>
+          <pre class="code-block"><code>{
+  "Age": 35,
+  "Tenure_Months": 18,
+  "Plan": "Premium",
+  "MonthlySpend": 2500,
+  "SupportTickets_90D": 2,
+  "MonthlyUsage_Hours": 50,
+  "PaymentHistory_Score": 85,
+  "LoginFrequency_30D": 12,
+  "FailedPayments_90D": 1,
+  "ContractType": "Monthly",
+  "AutoRenew": "No",
+  "DiscountPercent": 10,
+  "DaysSinceLastContact": 60,
+  "Complaints_90D": 1,
+  "Region": "North",
+  "SignupDate": "2024-01-01"
+}</code></pre>
+        </div>
+        <div class="col-md-6">
+          <div class="code-block-label">Response</div>
+          <pre class="code-block"><code>{
+  "prediction": "Churn",
+  "probability": 0.82,
+  "probability_pct": 82.0,
+  "risk_level": "High"
+}
+
+Risk Levels:
+  0% – 39%  →  Low
+  40% – 69% →  Medium
+  70% – 100%→  High</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+initPredictionForm();
+
+function fillSample() {
+  document.getElementById("Age").value = 35;
+  document.getElementById("Tenure_Months").value = 18;
+  document.getElementById("Plan").value = "Premium";
+  document.getElementById("MonthlySpend").value = 2500;
+  document.getElementById("SupportTickets_90D").value = 2;
+  document.getElementById("MonthlyUsage_Hours").value = 50;
+  document.getElementById("PaymentHistory_Score").value = 85;
+  document.getElementById("LoginFrequency_30D").value = 12;
+  document.getElementById("FailedPayments_90D").value = 1;
+  document.getElementById("ContractType").value = "Monthly";
+  document.getElementById("AutoRenew").value = "No";
+  document.getElementById("DiscountPercent").value = 10;
+  document.getElementById("DaysSinceLastContact").value = 60;
+  document.getElementById("Complaints_90D").value = 1;
+  document.getElementById("Region").value = "North";
+  document.getElementById("SignupDate").value = "2024-01-01";
+}
+</script>
+{% endblock %}

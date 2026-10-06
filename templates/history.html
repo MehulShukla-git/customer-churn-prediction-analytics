@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Prediction History — Customer Churn Analytics{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Prediction History</h1>
+    <p class="page-subtitle">Recent predictions processed by the model API.</p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-12">
+    <div class="chart-card">
+      <div class="chart-body">
+        <div class="table-responsive">
+          <table class="table table-clean" id="historyTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Date & Time</th>
+                <th>Prediction</th>
+                <th>Probability</th>
+                <th>Risk Level</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody">
+              <tr>
+                <td colspan="5" class="text-center py-4 text-muted">
+                  <div class="spinner-border spinner-border-sm me-2" role="status"></div> Loading...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const res = await fetch('/api/predictions-history');
+    const data = await res.json();
+    const tbody = document.getElementById('historyBody');
+    
+    if (data.error) throw new Error(data.error);
+    
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-muted">
+        <i class="bi bi-clock-history fs-2 d-block mb-2"></i>
+        No predictions yet. Submit a customer profile to see results here.
+      </td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = data.map(row => {
+      const date = new Date(row.created_at).toLocaleString();
+      const probPct = (row.probability * 100).toFixed(1) + '%';
+      
+      let badgeClass = 'badge-compared';
+      if (row.risk_level === 'High') badgeClass = 'bg-danger text-white';
+      else if (row.risk_level === 'Low') badgeClass = 'bg-success text-white';
+      else if (row.risk_level === 'Medium') badgeClass = 'bg-warning text-dark';
+
+      return `<tr>
+        <td>#${row.id}</td>
+        <td>${date}</td>
+        <td><strong>${row.prediction}</strong></td>
+        <td>${probPct}</td>
+        <td><span class="badge ${badgeClass} rounded-pill px-3 py-2">${row.risk_level}</span></td>
+      </tr>`;
+    }).join('');
+
+  } catch (err) {
+    document.getElementById('historyBody').innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">Failed to load history.</td></tr>`;
+  }
+});
+</script>
+{% endblock %}

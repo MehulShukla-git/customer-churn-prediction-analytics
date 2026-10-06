@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Data Quality — Customer Churn Analytics{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Data Quality Report</h1>
+    <p class="page-subtitle">Analysis of the raw dataset issues and cleaning steps performed before training.</p>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-6 col-lg-3">
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-icon-blue"><i class="bi bi-file-earmark-text"></i></div>
+      <div class="kpi-body">
+        <div class="kpi-label">Raw Rows</div>
+        <div class="kpi-value">{{ dq_report.get('shape', [0, 0])[0] | format_number }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-lg-3">
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-icon-amber"><i class="bi bi-files"></i></div>
+      <div class="kpi-body">
+        <div class="kpi-label">Duplicate Rows</div>
+        <div class="kpi-value">{{ dq_report.get('duplicate_rows', 0) | format_number }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-lg-3">
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-icon-red"><i class="bi bi-exclamation-diamond"></i></div>
+      <div class="kpi-body">
+        <div class="kpi-label">Missing Values</div>
+        <div class="kpi-value">
+          {% set missing = dq_report.get('missing_values', {}).values() | sum %}
+          {{ missing | format_number }}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-lg-3">
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-icon-green"><i class="bi bi-check-circle"></i></div>
+      <div class="kpi-body">
+        <div class="kpi-label">Cleaned Rows</div>
+        <div class="kpi-value">{{ (dq_report.get('shape', [0, 0])[0] - dq_report.get('duplicate_rows', 0)) | format_number }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h2 class="chart-title">Data Quality Issues Handled</h2>
+      </div>
+      <div class="chart-body">
+        <div class="table-responsive">
+          <table class="table table-clean">
+            <thead>
+              <tr>
+                <th>Issue Type</th>
+                <th>Description & Resolution</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Duplicates</strong></td>
+                <td>Found {{ dq_report.get('duplicate_rows', 0) }} exact duplicate rows and {{ dq_report.get('duplicate_customer_ids', 0) }} duplicate customer IDs. Removed exact duplicates and kept the most recent record for duplicate IDs.</td>
+              </tr>
+              <tr>
+                <td><strong>Missing Values</strong></td>
+                <td>Imputed missing numerical data with the median to avoid outlier distortion. Categorical gaps were filled with an 'Unknown' category.</td>
+              </tr>
+              <tr>
+                <td><strong>Inconsistent Categories</strong></td>
+                <td>Found overlapping categories (e.g., 'basic' vs 'Basic') in Plans and Contract types. Normalized all text strings to uppercase/lowercase standards.</td>
+              </tr>
+              <tr>
+                <td><strong>Numerical Outliers</strong></td>
+                <td>Found {{ dq_report.get('age_range', {}).get('negatives', 0) }} negative ages and {{ dq_report.get('spend_range', {}).get('negatives', 0) }} negative spend values. Values outside logical bounds were capped (winsorized) at the 99th percentile or converted to NaN for median imputation.</td>
+              </tr>
+              <tr>
+                <td><strong>Ambiguous Targets</strong></td>
+                <td>Rows with missing or unclear churn labels were dropped to prevent adding noise to the ML model.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h2 class="chart-title">Missing Values Breakdown</h2>
+      </div>
+      <div class="chart-body">
+        <div class="table-responsive">
+          <table class="table table-clean">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Missing Count</th>
+                <th>Missing %</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for feature, count in dq_report.get('missing_values', {}).items() %}
+              {% if count > 0 %}
+              <tr>
+                <td><code>{{ feature }}</code></td>
+                <td>{{ count }}</td>
+                <td>{{ dq_report.get('missing_pct', {}).get(feature, 0) }}%</td>
+              </tr>
+              {% endif %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
